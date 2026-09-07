@@ -2,6 +2,10 @@
 
 declare(strict_types=1);
 
+namespace App\Model;
+
+use PDO;
+
 class Product
 {
     public function getData(): array
