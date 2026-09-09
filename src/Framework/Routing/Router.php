@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Framework;
+namespace Framework\Routing;
 
 final class Router
 {
@@ -107,8 +107,4 @@ final class Router
 
         return '#^' . implode('/', $segments) . '$#iu';
     }
-    /**
-     * lolda
-     * pizdes
-     */
 }
