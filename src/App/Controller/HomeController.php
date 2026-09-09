@@ -4,10 +4,18 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
+use Framework\Routing\Route;
+use Framework\View;
+
 class HomeController
 {
+    #[Route('/')]
     public function index()
     {
-        require ROOT_PATH . 'templates/home/index.php';
+        $view = new View();
+
+        echo $view->render(
+            'home/index'
+        );
     }
 }

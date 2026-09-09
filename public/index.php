@@ -6,7 +6,6 @@ define("ROOT_PATH", dirname(__DIR__) . '/');
 
 require ROOT_PATH . 'config/autoload.php';
 
-
 $requestUri = $_SERVER['REQUEST_URI']
     ?? throw new \RuntimeException('REQUEST_URI is unavailable');
 
@@ -19,46 +18,15 @@ if ($uri === null || $uri->getRawPath() === '') {
 
 $path = $uri->getPath();
 
+$router = new Framework\Routing\Router;
+
+$routeLoader = new Framework\Routing\AttributeLoader($router);
+$routeLoader->load(App\Controller\HomeController::class);
+$routeLoader->load(App\Controller\ProductController::class);
 
 
-$router = new Framework\Router;
-
-$router->add(
-    '/',
-    [
-        'controller' => \App\Controller\HomeController::class,
-        'action' => 'index'
-    ]
-);
-
-$router->add(
-    '/products',
-    [
-        'controller' => \App\Controller\ProductController::class,
-        'action' => 'index'
-    ]
-);
-
-$router->add(
-    '/products/{id:\d+}',
-    [
-        'controller' => \App\Controller\ProductController::class,
-        'action' => 'show'
-    ]
-);
-
-$params = $router->match($path);
-
-if ($params === false) {
-    http_response_code(404);
-    exit('404 not found');
-}
-
-$controllerClass = $params['controller'];
-$action = $params['action'];
-
-$controller = new $controllerClass();
-$controller->$action();
+$dispatcher = new Framework\Dispatcher($router);
+$dispatcher->handle($path);
 
 #[\NoDiscard('the escaped value must be used')]
 function e(string|\Stringable|int|float|null $value): string

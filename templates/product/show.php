@@ -1,1 +1,7 @@
-show a product
+<?php
+
+/** @var string $id */
+
+?>
+
+show a product <?= e($id) ?>
