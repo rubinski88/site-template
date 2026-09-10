@@ -10,15 +10,18 @@ use Framework\View;
 
 class ProductController
 {
+    public function __construct(
+        private View $view,
+        private Product $model
+    ) {}
+
     #[Route('/products')]
     public function index()
     {
 
-        $products = (new Product)->getData();
+        $products = $this->model->getData();
 
-        $view = new View();
-
-        echo $view->render(
+        echo $this->view->render(
             'product/index',
             [
                 'products' => $products
@@ -29,9 +32,8 @@ class ProductController
     #[Route('/products/{id:\d+}')]
     public function show(string $id)
     {
-        $view = new View();
 
-        echo $view->render(
+        echo $this->view->render(
             'product/show',
             [
                 'id' => $id

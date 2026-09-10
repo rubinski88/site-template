@@ -24,8 +24,9 @@ $routeLoader = new Framework\Routing\AttributeLoader($router);
 $routeLoader->load(App\Controller\HomeController::class);
 $routeLoader->load(App\Controller\ProductController::class);
 
+$container = require ROOT_PATH . 'config/container.php';
 
-$dispatcher = new Framework\Dispatcher($router);
+$dispatcher = new Framework\Dispatcher($router, $container);
 $dispatcher->handle($path);
 
 #[\NoDiscard('the escaped value must be used')]

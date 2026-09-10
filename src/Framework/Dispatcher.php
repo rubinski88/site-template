@@ -8,10 +8,12 @@ use Framework\Routing\Router;
 use ReflectionMethod;
 use LogicException;
 
+
 class Dispatcher
 {
     public function __construct(
-        private Router $router
+        private Router $router,
+        private Container $container
     ) {}
 
     /**
@@ -42,7 +44,7 @@ class Dispatcher
             );
         }
 
-        $controller = new $controllerClass();
+        $controller = $this->container->get($controllerClass);
 
         if (!is_callable([$controller, $action])) {
             throw new LogicException(
