@@ -6,6 +6,11 @@ define("ROOT_PATH", dirname(__DIR__) . '/');
 
 require ROOT_PATH . 'config/autoload.php';
 
+$dotenv = new Framework\DotEnv;
+$dotenv->load(ROOT_PATH . '.env');
+
+require ROOT_PATH . 'config/error_handler.php';
+
 $requestUri = $_SERVER['REQUEST_URI']
     ?? throw new \RuntimeException('REQUEST_URI is unavailable');
 
@@ -13,16 +18,12 @@ $uri = \Uri\Rfc3986\Uri::parse($requestUri);
 
 if ($uri === null || $uri->getRawPath() === '') {
     http_response_code(400);
-    exit;
+    throw new UnexpectedValueException('Malformed URL: ' . $requestUri);
 }
 
 $path = $uri->getPath();
 
-$router = new Framework\Routing\Router;
-
-$routeLoader = new Framework\Routing\AttributeLoader($router);
-$routeLoader->load(App\Controller\HomeController::class);
-$routeLoader->load(App\Controller\ProductController::class);
+$router = require ROOT_PATH . 'config/router.php';
 
 $container = require ROOT_PATH . 'config/container.php';
 

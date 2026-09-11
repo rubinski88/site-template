@@ -7,6 +7,7 @@ namespace Framework;
 use Framework\Routing\Router;
 use ReflectionMethod;
 use LogicException;
+use Framework\Routing\RouteNotFoundException;
 
 
 class Dispatcher
@@ -31,8 +32,9 @@ class Dispatcher
         $params = $this->router->match($path);
 
         if ($params === false) {
-            http_response_code(404);
-            exit('404 not found');
+            throw new RouteNotFoundException(
+                'No route matches the request path ' . $path
+            );
         }
 
         $controllerClass = $params['controller'];
