@@ -24,6 +24,7 @@ class ProductController
         echo $this->view->render(
             'product/index',
             [
+                'title' => 'Products',
                 'products' => $products
             ]
         );
@@ -36,6 +37,7 @@ class ProductController
         echo $this->view->render(
             'product/show',
             [
+                'title' => 'Product ' . $id,
                 'id' => $id
             ]
         );

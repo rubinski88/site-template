@@ -15,7 +15,10 @@ class HomeController
         $view = new View();
 
         echo $view->render(
-            'home/index'
+            'home/index',
+            [
+                'title' => 'Home'
+            ]
         );
     }
 }
