@@ -40,8 +40,8 @@ class Dispatcher
     /**
      * Dispatches an HTTP request to a registered controller action.
      *
-     * Matches the request, resolves the controller and its dependencies,
-     * then invokes the controller action to produce a response.
+     * Matches the request, resolves the controller and route middleware,
+     * then passes the request through the middleware pipeline.
      *
      * @param Request $request Incoming HTTP request
      *
@@ -115,9 +115,22 @@ class Dispatcher
             $params,
         );
 
-        $controller->setRequest($request);
+        $controllerRequestHandler = new ControllerRequestHandler(
+            $controller,
+            $action,
+            $args,
+        );
 
-        return $controller->{$action}(...$args);
+        $middleware = $this->resolveMiddleware(
+            $params['middleware'] ?? [],
+        );
+
+        $middlewareRequestHandler = new MiddlewareRequestHandler(
+            $middleware,
+            $controllerRequestHandler,
+        );
+
+        return $middlewareRequestHandler->handle($request);
     }
 
     /**
@@ -182,5 +195,44 @@ class Dispatcher
         }
 
         return $parsedUri->getPath();
+    }
+
+
+
+    /**
+     * Resolves route middleware through the container.
+     *
+     * Creates middleware objects in declaration order and verifies
+     * that each object implements the middleware contract.
+     *
+     * @param list<class-string<MiddlewareInterface>> $middlewareClasses Middleware classes
+     *
+     * @return list<MiddlewareInterface> Resolved middleware objects
+     *
+     * @throws LogicException If a class does not implement MiddlewareInterface
+     * @throws \ReflectionException If a middleware cannot be reflected
+     */
+    private function resolveMiddleware(
+        array $middlewareClasses
+    ): array {
+        $middleware = [];
+
+        foreach ($middlewareClasses as $middlewareClass) {
+            $instance = $this->container->get(
+                $middlewareClass
+            );
+
+            if (!$instance instanceof MiddlewareInterface) {
+                throw new LogicException(
+                    $middlewareClass
+                        . ' must implement '
+                        . MiddlewareInterface::class
+                );
+            }
+
+            $middleware[] = $instance;
+        }
+
+        return $middleware;
     }
 }
