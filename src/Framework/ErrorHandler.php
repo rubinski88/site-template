@@ -75,6 +75,7 @@ final class ErrorHandler
 
         $statusCode = match (true) {
             $exception instanceof RouteNotFoundException => 404,
+            $exception instanceof NotFoundException => 404,
             $exception instanceof MethodNotAllowedException => 405,
             $exception instanceof UnexpectedValueException => 400,
             default => 500,

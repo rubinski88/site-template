@@ -4,24 +4,32 @@ declare(strict_types=1);
 
 namespace App\Model;
 
-use Framework\Database;
+use Framework\Model;
 
-class Product
+use PDO;
+
+class Product extends Model
 {
-    public function __construct(
-        private Database $database
-    ) {}
+    protected ?string $tableName = 'products';
 
-    public function getData(): array
+
+    protected function validate(array $data): void
     {
-        $pdo = $this->database->getConnection();
+        if (empty($data['name'])) {
+            $this->addError('name', 'Empty name is not allowed');
+        }
+    }
 
-        $sql = 'SELECT * FROM products';
+    public function getTotal(): int
+    {
+        $sql = "SELECT COUNT(*) as records FROM {$this->tableName}";
 
-        $stmt = $pdo->query($sql);
+        $conn = $this->database->getConnection();
 
-        $products = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+        $stmt = $conn->query($sql);
 
-        return $products;
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        return (int) $row['records'];
     }
 }
