@@ -6,6 +6,7 @@ namespace Framework;
 
 use Framework\Http\Request;
 use Framework\Http\Response;
+use Framework\Routing\MethodNotAllowedException;
 use Framework\Routing\RouteNotFoundException;
 use Framework\Routing\Router;
 use Framework\Templating\ViewInterface;
@@ -49,6 +50,7 @@ class Dispatcher
      *
      * @throws UnexpectedValueException If the request URI is malformed
      * @throws RouteNotFoundException If no route matches the request
+     * @throws MethodNotAllowedException If the method is not allowed
      * @throws LogicException If a route component cannot be resolved
      * @throws \ReflectionException If a dependency cannot be reflected
      */
@@ -58,6 +60,7 @@ class Dispatcher
 
         $params = $this->router->match(
             $path,
+            $request->method,
         );
 
         if ($params === false) {

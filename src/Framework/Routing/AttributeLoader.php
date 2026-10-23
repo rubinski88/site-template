@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Framework\Routing;
 
+use InvalidArgumentException;
 use ReflectionClass;
 use ReflectionException;
 use ReflectionMethod;
@@ -31,11 +32,13 @@ final class AttributeLoader
      * Loads routes declared on public controller methods.
      *
      * Reflects the supplied controller class and registers each Route
-     * attribute with its controller, action and middleware metadata.
+     * attribute as one route with its complete HTTP method list,
+     * controller, action and middleware metadata.
      *
      * @param class-string $controllerClass Controller class to inspect
      *
      * @throws ReflectionException If the controller class cannot be reflected
+     * @throws InvalidArgumentException If route methods are invalid
      */
     public function load(string $controllerClass): void
     {
@@ -54,6 +57,7 @@ final class AttributeLoader
 
                 $this->router->add(
                     $route->path,
+                    $route->methods,
                     [
                         'controller' => $controllerClass,
                         'action' => $method->getName(),
