@@ -15,4 +15,9 @@ $container->set(
     )
 );
 
+$container->set(
+    Framework\Templating\ViewInterface::class,
+    fn(): Framework\Templating\ViewInterface => new Framework\Templating\View
+);
+
 return $container;

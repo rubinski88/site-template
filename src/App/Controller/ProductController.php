@@ -6,22 +6,22 @@ namespace App\Controller;
 
 use App\Model\Product;
 use Framework\Routing\Route;
-use Framework\View;
+use Framework\Controller;
+use Framework\Http\Response;
 
-class ProductController
+class ProductController extends Controller
 {
     public function __construct(
-        private View $view,
         private Product $model
     ) {}
 
     #[Route('/products')]
-    public function index()
+    public function index(): Response
     {
 
         $products = $this->model->getData();
 
-        echo $this->view->render(
+        return $this->view(
             'product/index',
             [
                 'title' => 'Products',
@@ -31,21 +31,15 @@ class ProductController
     }
 
     #[Route('/products/{id:\d+}')]
-    public function show(string $id)
+    public function show(string $id): Response
     {
 
-        echo $this->view->render(
+        return $this->view(
             'product/show',
             [
                 'title' => 'Product ' . $id,
                 'id' => $id
             ]
         );
-    }
-
-    #[Route('/{title}/{id:\d+}/{page}')]
-    public function exampleShow(string $title, string $id, string $page)
-    {
-        var_dump($title, $id, $page);
     }
 }

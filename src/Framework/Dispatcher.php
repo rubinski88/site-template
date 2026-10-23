@@ -4,32 +4,61 @@ declare(strict_types=1);
 
 namespace Framework;
 
-use Framework\Routing\Router;
-use ReflectionMethod;
-use LogicException;
+use Framework\Http\Request;
+use Framework\Http\Response;
 use Framework\Routing\RouteNotFoundException;
+use Framework\Routing\Router;
+use Framework\Templating\ViewInterface;
+use LogicException;
+use ReflectionMethod;
+use UnexpectedValueException;
+use Uri\Rfc3986\Uri;
 
-
+/**
+ * Dispatches incoming HTTP requests to controller actions.
+ *
+ * Coordinates request path extraction, route matching,
+ * controller resolution, dependency assignment,
+ * action argument mapping and controller invocation.
+ */
 class Dispatcher
 {
+    /**
+     * Creates a dispatcher with its required collaborators.
+     *
+     * Stores the router used to match incoming requests and
+     * the container used to resolve application components.
+     *
+     * @param Router $router Application router
+     * @param Container $container Dependency injection container
+     */
     public function __construct(
         private Router $router,
-        private Container $container
+        private Container $container,
     ) {}
 
     /**
-     * Dispatches a request path to its registered controller action
+     * Dispatches an HTTP request to a registered controller action.
      *
-     * Resolves the matching route, validates its handler
-     * and invokes the action with captured path parameters
+     * Matches the request, resolves the controller and its dependencies,
+     * then invokes the controller action to produce a response.
      *
-     * @param string $path Request path to dispatch
+     * @param Request $request Incoming HTTP request
      *
-     * @throws LogicException If the controller class does not exist or the action is not callable
+     * @return Response Produced HTTP response
+     *
+     * @throws UnexpectedValueException If the request URI is malformed
+     * @throws RouteNotFoundException If no route matches the request
+     * @throws LogicException If a route component cannot be resolved
+     * @throws \ReflectionException If a dependency cannot be reflected
      */
-    public function handle(string $path): void
+    public function handle(Request $request): Response
     {
-        $params = $this->router->match($path);
+        $path = $this->getPath($request->uri);
+
+        $params = $this->router->match(
+            $path,
+        );
 
         if ($params === false) {
             throw new RouteNotFoundException(
@@ -42,11 +71,33 @@ class Dispatcher
 
         if (!class_exists($controllerClass)) {
             throw new LogicException(
-                'Controller class ' . $controllerClass . ' does not exist'
+                'Controller class '
+                    . $controllerClass
+                    . ' does not exist'
             );
         }
 
-        $controller = $this->container->get($controllerClass);
+        $controller = $this->container->get(
+            $controllerClass
+        );
+
+        if (!$controller instanceof Controller) {
+            throw new LogicException(
+                $controllerClass
+                    . ' must extend '
+                    . Controller::class
+            );
+        }
+
+        $controller->setResponse(
+            $this->container->get(Response::class)
+        );
+
+        $controller->setView(
+            $this->container->get(
+                ViewInterface::class
+            )
+        );
 
         if (!is_callable([$controller, $action])) {
             throw new LogicException(
@@ -58,22 +109,30 @@ class Dispatcher
             );
         }
 
-        $args = $this->getActionArguments($controllerClass, $action, $params);
+        $args = $this->getActionArguments(
+            $controllerClass,
+            $action,
+            $params,
+        );
 
-        $controller->$action(...$args);
+        $controller->setRequest($request);
+
+        return $controller->{$action}(...$args);
     }
 
     /**
-     * Builds arguments for a controller action
+     * Builds arguments for a controller action.
      *
-     * Uses reflection to read action parameter names
-     * and maps them to matched route parameter values
+     * Reflects the controller method and maps every action parameter
+     * to the value captured under the same name by the router.
      *
-     * @param string $controllerClass Fully qualified controller class name
-     * @param string $action Controller action method name
+     * @param class-string $controllerClass Controller class name
+     * @param string $action Controller action name
      * @param array<string, mixed> $params Matched route parameters
      *
-     * @return array<string, mixed> Arguments indexed by action parameter names
+     * @return array<string, mixed> Controller action arguments
+     *
+     * @throws \ReflectionException If the controller action cannot be reflected
      */
     private function getActionArguments(
         string $controllerClass,
@@ -82,7 +141,10 @@ class Dispatcher
     ): array {
         $args = [];
 
-        $method = new ReflectionMethod($controllerClass, $action);
+        $method = new ReflectionMethod(
+            $controllerClass,
+            $action,
+        );
 
         foreach ($method->getParameters() as $parameter) {
             $name = $parameter->getName();
@@ -91,5 +153,34 @@ class Dispatcher
         }
 
         return $args;
+    }
+
+
+    /**
+     * Extracts the normalized path from a request URI.
+     *
+     * Parses the supplied URI according to RFC 3986 and rejects
+     * malformed values or URIs without a path component.
+     *
+     * @param string $requestUri Raw request URI
+     *
+     * @return string Normalized request path
+     *
+     * @throws UnexpectedValueException If the URI is malformed or has no path
+     */
+    private function getPath(string $requestUri): string
+    {
+        $parsedUri = Uri::parse($requestUri);
+
+        if (
+            $parsedUri === null
+            || $parsedUri->getRawPath() === ''
+        ) {
+            throw new UnexpectedValueException(
+                'Malformed URL: ' . $requestUri
+            );
+        }
+
+        return $parsedUri->getPath();
     }
 }
