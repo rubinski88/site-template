@@ -9,21 +9,27 @@ use ReflectionClass;
 use ReflectionNamedType;
 use LogicException;
 
+/**
+ * Resolves objects and their constructor dependencies.
+ *
+ * Uses explicitly registered factories when available and otherwise
+ * creates objects by recursively resolving class-typed dependencies.
+ */
 class Container
 {
     /**
-     * Registered object factories
+     * Registered object factories.
      *
-     * Each closure creates an object for the class name under which it is registered
+     * Each closure creates an object for the class name under which it is registered.
      *
      * @var array<class-string, Closure>
      */
     private array $registry = [];
 
     /**
-     * Registers an object factory
+     * Registers an object factory.
      *
-     * The factory is stored by class name and invoked when that class is requested
+     * The factory is stored by class name and invoked when that class is requested.
      *
      * @param class-string $className Fully qualified class name used as the registry key
      * @param Closure $factory Closure that creates an object of the registered class
@@ -34,10 +40,10 @@ class Container
     }
 
     /**
-     * Resolves an object and its constructor dependencies
+     * Resolves an object and its constructor dependencies.
      *
      * Uses a registered factory when available or recursively resolves
-     * class-typed constructor parameters
+     * class-typed constructor parameters.
      *
      * @param class-string $className  Fully qualified class name of the requested object
      *

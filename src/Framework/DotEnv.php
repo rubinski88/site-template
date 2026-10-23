@@ -7,22 +7,28 @@ namespace Framework;
 use RuntimeException;
 use UnexpectedValueException;
 
+/**
+ * Loads and provides typed application environment values.
+ *
+ * Parses a restricted NAME=value file format, validates all entries before
+ * storing them and exposes values through type-specific accessors.
+ */
 class DotEnv
 {
     /**
-     * Loaded environment variables
+     * Loaded environment variables.
      *
-     * Values are stored privately and exposed only through typed accessors
+     * Values are stored privately and exposed only through typed accessors.
      *
      * @var array<string, string>
      */
     private array $variables = [];
 
     /**
-     * Loads environment variables from a file
+     * Loads environment variables from a file.
      *
      * Reads NAME=value entries, skips empty lines and comments, and validates
-     * the entire file before replacing the privately stored variables
+     * the entire file before replacing the privately stored variables.
      *
      * @param string $path Absolute path to the environment file
      *
@@ -105,9 +111,9 @@ class DotEnv
     }
 
     /**
-     * Returns a loaded environment variable
+     * Returns a loaded environment variable.
      *
-     * Provides the raw string value used by the typed public accessors
+     * Provides the raw string value used by the typed public accessors.
      *
      * @param string $name Name of the environment variable
      *
@@ -127,9 +133,9 @@ class DotEnv
     }
 
     /**
-     * Returns an environment variable as a string
+     * Returns an environment variable as a string.
      *
-     * Preserves the value exactly as it was stored after parsing
+     * Preserves the value exactly as it was stored after parsing.
      *
      * @param string $name Name of the environment variable
      *
@@ -143,9 +149,9 @@ class DotEnv
     }
 
     /**
-     * Returns an environment variable as an integer
+     * Returns an environment variable as an integer.
      *
-     * Accepts only values that represent a valid integer
+     * Accepts only values that represent a valid integer.
      *
      * @param string $name Name of the environment variable
      *
@@ -171,9 +177,9 @@ class DotEnv
     }
 
     /**
-     * Returns an environment variable as a boolean
+     * Returns an environment variable as a boolean.
      *
-     * Accepts only the lowercase values true and false
+     * Accepts only the lowercase values true and false.
      *
      * @param string $name Name of the environment variable
      *
